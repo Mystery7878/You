@@ -39,7 +39,7 @@
       resultDiv.innerHTML = "⏳ Processing...";
       
       try {
-        const response = await fetch("https://you-api-zhad.onrender.com", {
+        const response = await fetch("https://you-api-zhad.onrender.com/download", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ url })
