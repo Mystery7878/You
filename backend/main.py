@@ -1,30 +1,28 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
 from fastapi.responses import JSONResponse
-from pydantic import BaseModel
 import yt_dlp
 
 app = FastAPI()
 
-class VideoRequest(BaseModel):
-    url: str
-
 @app.post("/download")
-async def download_video(video: VideoRequest):
-    url = video.url
-    ydl_opts = {"format": "best", "quiet": True}
+async def download_video(request: Request):
+    data = await request.json()
+    url = data.get("url")
+
+    if not url:
+        return {"error": "No URL provided"}
 
     try:
+        # Extract video info without downloading
+        ydl_opts = {"quiet": True, "skip_download": True}
         with yt_dlp.YoutubeDL(ydl_opts) as ydl:
             info = ydl.extract_info(url, download=False)
-            download_url = info["url"]
-            title = info.get("title", "Unknown Title")
-            thumbnail = info.get("thumbnail", "")
 
         return {
-            "download_url": download_url,
-            "title": title,
-            "thumbnail": thumbnail
+            "title": info.get("title"),
+            "thumbnail": info.get("thumbnail"),
+            "download_url": info.get("url")  # Direct stream link
         }
 
     except Exception as e:
-        return JSONResponse(status_code=500, content={"error": str(e)})
+        return {"error": str(e)}
